@@ -12,10 +12,13 @@ export default class FeatchAPIService {
 
     const response = await fetch(url);
     const data = await response.json();
+
     this.total = data.totalHits;
     if (Math.ceil(data.totalHits / this.perPage) === this.page) {
       this.isEndCollection = true;
     }
+
+    this.pageIncrement();
     const photo = await data.hits;
 
     return photo;
@@ -40,6 +43,16 @@ export default class FeatchAPIService {
   }
   initialPage() {
     this.page = 1;
+  }
+
+  get pageValue() {
+    return this.page;
+  }
+  get endCollection() {
+    return this.isEndCollection;
+  }
+  set endCollection(newValue) {
+    this.isEndCollection = newValue;
   }
 
   get query() {

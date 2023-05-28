@@ -1,5 +1,7 @@
 import FeatchAPIService from './js/fetchAPI';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const refs = {
   formEl: document.querySelector('#search-form'),
@@ -12,48 +14,77 @@ const featchAPI = new FeatchAPIService();
 refs.formEl.addEventListener('submit', onSearch);
 refs.loadEl.addEventListener('click', onLoad);
 
+const lightbox = new SimpleLightbox('.gallery a');
+
 function onSearch(e) {
   e.preventDefault();
   featchAPI.query = e.currentTarget.elements.searchQuery.value.trim();
 
+  if (featchAPI.query.length === 0) {
+    Notify.failure("We're sorry, but you want to find nothing");
+    return;
+  }
+
+  featchAPI.initialPage();
   refs.galleryEl.innerHTML = '';
 
-  featchAPI.fetchArticles().then(photos => {
-    if (photos.length === 0) {
-      Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-      return;
-    }
-    Notify.success(`Hooray! We found ${featchAPI.total} images.`);
-    featchAPI.initialPage();
-    featchAPI.isEndCollection = false;
-    refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
-    refs.loadEl.classList.remove('is-not-show');
-    featchAPI.pageIncrement();
-  });
+  featchAPI
+    .fetchArticles()
+    .then(photos => {
+      if (photos.length === 0) {
+        Notify.failure(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+        return;
+      }
+      Notify.success(`Hooray! We found ${featchAPI.total} images.`);
+
+      featchAPI.endCollection = false;
+
+      refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
+
+      renderBtnLoad();
+      lightbox.refresh();
+    })
+    .catch(error => {
+      Notify.failure(error.message);
+    });
 }
-function onLoad(e) {
-  featchAPI.fetchArticles().then(photos => {
-    refs.loadEl.classList.add('is-not-show');
-    refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
+function onLoad() {
+  featchAPI
+    .fetchArticles()
+    .then(photos => {
+      renderBtnLoad();
+      refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
+      lightbox.refresh();
+
+      if (featchAPI.endCollection) {
+        Notify.failure(
+          "We're sorry, but you've reached the end of search results."
+        );
+        return;
+      }
+      scrollGallery();
+    })
+    .catch(error => {
+      Notify.failure(error.message);
+    });
+}
+
+function renderBtnLoad() {
+  if (featchAPI.pageValue === 1) {
     refs.loadEl.classList.remove('is-not-show');
-    featchAPI.pageIncrement();
-    if (featchAPI.isEndCollection) {
-      Notify.failure(
-        "We're sorry, but you've reached the end of search results."
-      );
+    return;
+  }
+  refs.loadEl.classList.add('is-not-show');
+  setTimeout(() => {
+    if (featchAPI.endCollection) {
       refs.loadEl.classList.add('is-not-show');
+    } else if (!featchAPI.endCollection) {
+      refs.loadEl.classList.remove('is-not-show');
     }
-  });
+  }, 1000);
 }
-// webformatURL - ссылка на маленькое изображение для списка карточек.
-// largeImageURL - ссылка на большое изображение.
-// tags - строка с описанием изображения. Подойдет для атрибута alt.
-// likes - количество лайков.
-// views - количество просмотров.
-// comments - количество комментариев.
-// downloads - количество загрузок.
 
 function renderPhotos(photos) {
   return photos
@@ -68,7 +99,7 @@ function renderPhotos(photos) {
         downloads,
       }) => {
         return `<div class="photo-card">
-      <img src="${webformatURL}" alt="${tags}" loading="lazy" class="photo-card__img"/>
+        <a href="${largeImageURL}"> <img src="${webformatURL}" alt="${tags}" loading="lazy" class="photo-card__img"/></a>
       <div class="photo-card__info">
         <div><p class="info-item">
           <b class="info-item__name">Likes</b>
@@ -93,37 +124,13 @@ function renderPhotos(photos) {
     .join('');
 }
 
-// const URL_API = 'https://pixabay.com/api/?';
-// const options = {
-//   key: '36810234-b5e1d7960ec1148affe35137c',
-//   q: 'cat',
-//   image_type: 'photo',
-//   orientation: 'horizontal',
-//   safesearch: true,
-// };
+function scrollGallery() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
 
-// function objectOptionsToStr(options) {
-//   const keysOptions = Object.keys(options);
-//   let str = '';
-
-//   for (const iterator of keysOptions) {
-//     str += `${iterator}=${keysOptions[iterator]}`;
-//   }
-
-//   return str;
-// }
-
-// async function fetchPixabay() {
-//   const response = await fetch(
-//     `https://pixabay.com/api/?key=${options.key}&q=${options.q}&image_type=${options.image_type}&orientation=${options.orientation}&safesearch=${options.safesearch}`
-//   );
-//   const bild = await response.json();
-//   return bild;
-// }
-
-// fetchPixabay().then(bild => console.log(bild));
-
-//   .fetch(
-//     `https://pixabay.com/api/?key=${options.key}&q=${options.q}&image_type=${options.image_type}&orientation=${options.orientation}&safesearch=${options.safesearch}`
-//   )
-//   .then(response => response.json());
+  window.scrollBy({
+    top: cardHeight * 1.5,
+    behavior: 'smooth',
+  });
+}
