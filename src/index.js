@@ -1,4 +1,5 @@
 import FeatchAPIService from './js/fetchAPI';
+import buttonUPService from './js/btnUP';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
@@ -7,9 +8,13 @@ const refs = {
   formEl: document.querySelector('#search-form'),
   galleryEl: document.querySelector('.gallery'),
   loadEl: document.querySelector('.load-more'),
+  spanBtnLoadEl: document.querySelector('.load-more__span'),
 };
 
 const featchAPI = new FeatchAPIService();
+const buttonUP = new buttonUPService();
+
+buttonUP.addEventListener();
 
 refs.formEl.addEventListener('submit', onSearch);
 refs.loadEl.addEventListener('click', onLoad);
@@ -24,7 +29,7 @@ function onSearch(e) {
     Notify.failure("We're sorry, but you want to find nothing");
     return;
   }
-
+  featchAPI.endCollection = false;
   featchAPI.initialPage();
   refs.galleryEl.innerHTML = '';
 
@@ -38,8 +43,6 @@ function onSearch(e) {
         return;
       }
       Notify.success(`Hooray! We found ${featchAPI.total} images.`);
-
-      featchAPI.endCollection = false;
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
 
@@ -72,18 +75,12 @@ function onLoad() {
 }
 
 function renderBtnLoad() {
-  if (featchAPI.pageValue === 1) {
-    refs.loadEl.classList.remove('is-not-show');
-    return;
-  }
   refs.loadEl.classList.add('is-not-show');
-  setTimeout(() => {
-    if (featchAPI.endCollection) {
-      refs.loadEl.classList.add('is-not-show');
-    } else if (!featchAPI.endCollection) {
-      refs.loadEl.classList.remove('is-not-show');
-    }
-  }, 1000);
+  if (featchAPI.endCollection) {
+    refs.loadEl.classList.add('is-not-show');
+  } else if (!featchAPI.endCollection) {
+    refs.loadEl.classList.remove('is-not-show');
+  }
 }
 
 function renderPhotos(photos) {
