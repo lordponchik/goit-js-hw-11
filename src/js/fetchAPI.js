@@ -1,6 +1,10 @@
 export default class FeatchAPIService {
   constructor() {
     this.searchQuery = '';
+    this.page = 1;
+    this.perPage = 40;
+    this.isEndCollection = false;
+    this.total = 0;
   }
 
   async fetchArticles() {
@@ -8,9 +12,13 @@ export default class FeatchAPIService {
 
     const response = await fetch(url);
     const data = await response.json();
-    const photos = await data.hits;
+    this.total = data.totalHits;
+    if (Math.ceil(data.totalHits / this.perPage) === this.page) {
+      this.isEndCollection = true;
+    }
+    const photo = await data.hits;
 
-    return photos;
+    return photo;
   }
 
   fetchOptions() {
@@ -20,10 +28,20 @@ export default class FeatchAPIService {
       image_type: 'photo',
       orientation: 'horizontal',
       safesearch: true,
+      page: this.page,
+      per_page: 40,
     };
 
-    return `key=${options.key}&q=${options.q}&image_type=${options.image_type}&orientation=${options.orientation}&safesearch=${options.safesearch}`;
+    return `key=${options.key}&q=${options.q}&image_type=${options.image_type}&orientation=${options.orientation}&safesearch=${options.safesearch}&page=${options.page}&per_page=${options.per_page}`;
   }
+
+  pageIncrement() {
+    this.page += 1;
+  }
+  initialPage() {
+    this.page = 1;
+  }
+
   get query() {
     return this.searchQuery;
   }

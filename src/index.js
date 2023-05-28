@@ -4,11 +4,13 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 const refs = {
   formEl: document.querySelector('#search-form'),
   galleryEl: document.querySelector('.gallery'),
+  loadEl: document.querySelector('.load-more'),
 };
 
 const featchAPI = new FeatchAPIService();
 
 refs.formEl.addEventListener('submit', onSearch);
+refs.loadEl.addEventListener('click', onLoad);
 
 function onSearch(e) {
   e.preventDefault();
@@ -23,10 +25,28 @@ function onSearch(e) {
       );
       return;
     }
+    Notify.success(`Hooray! We found ${featchAPI.total} images.`);
+    featchAPI.initialPage();
+    featchAPI.isEndCollection = false;
     refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
+    refs.loadEl.classList.remove('is-not-show');
+    featchAPI.pageIncrement();
   });
 }
-
+function onLoad(e) {
+  featchAPI.fetchArticles().then(photos => {
+    refs.loadEl.classList.add('is-not-show');
+    refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
+    refs.loadEl.classList.remove('is-not-show');
+    featchAPI.pageIncrement();
+    if (featchAPI.isEndCollection) {
+      Notify.failure(
+        "We're sorry, but you've reached the end of search results."
+      );
+      refs.loadEl.classList.add('is-not-show');
+    }
+  });
+}
 // webformatURL - ссылка на маленькое изображение для списка карточек.
 // largeImageURL - ссылка на большое изображение.
 // tags - строка с описанием изображения. Подойдет для атрибута alt.
@@ -51,16 +71,20 @@ function renderPhotos(photos) {
       <img src="${webformatURL}" alt="${tags}" loading="lazy" class="photo-card__img"/>
       <div class="photo-card__info">
         <div><p class="info-item">
-          <b>Likes: ${likes}</b>
+          <b class="info-item__name">Likes</b>
+          <b class="info-item__value">${likes}</b>
         </p>
         <p class="info-item">
-          <b>Views: ${views}</b>
+          <b class="info-item__name">Views</b>
+          <b class="info-item__value">${views}</b>
         </p></div>
         <div><p class="info-item">
-          <b>Comments: ${comments}</b>
+          <b class="info-item__name">Comments</b>
+          <b class="info-item__value">${comments}</b>
         </p>
         <p class="info-item">
-          <b>Downloads: ${downloads}</b>
+          <b class="info-item__name">Downloads</b>
+          <b class="info-item__value">${downloads}</b>
         </p></div>
       </div>
     </div>`;
