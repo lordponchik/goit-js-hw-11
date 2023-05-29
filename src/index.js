@@ -31,26 +31,31 @@ function onSearch(e) {
     Notify.failure("We're sorry, but you want to find nothing");
     return;
   }
+
   featchAPI.endCollection = false;
   featchAPI.initialPage();
   refs.galleryEl.innerHTML = '';
+
   buttonLoad.show();
   buttonLoad.disabled();
+
   featchAPI
     .fetchArticles()
     .then(photos => {
-      buttonLoad.hide();
       if (photos.length === 0) {
         Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
         return;
       }
+
       Notify.success(`Hooray! We found ${featchAPI.total} images.`);
 
-      refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
-      checkCollection();
+      buttonLoad.hide();
 
+      refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
+
+      checkCollection();
       buttonLoad.enabled();
       lightbox.refresh();
     })
@@ -61,12 +66,13 @@ function onSearch(e) {
 function onLoad() {
   buttonLoad.show();
   buttonLoad.disabled();
+
   featchAPI
     .fetchArticles()
     .then(photos => {
       buttonLoad.hide();
+
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
-      lightbox.refresh();
 
       if (featchAPI.endCollection) {
         Notify.failure(
@@ -78,6 +84,7 @@ function onLoad() {
       scrollGallery();
       checkCollection();
       buttonLoad.enabled();
+      lightbox.refresh();
     })
     .catch(error => {
       Notify.failure(error.message);
