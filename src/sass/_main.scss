@@ -48,9 +48,11 @@
   background-color: #000;
 }
 .load-more {
+  position: relative;
   overflow: hidden;
   display: block;
   margin: 0 auto;
+  min-width: 150px;
   padding: 10px 20px;
   border-style: none;
   background-color: #fff;
@@ -67,10 +69,22 @@
   }
 }
 
-.load-more.is-not-show {
+.load-more__anim {
+  position: absolute;
+  display: block;
+  top: 50%;
+  left: 10%;
+
+  color: #000;
+  transform: translateY(-50%);
+
+  animation: load 1s cubic-bezier(0.19, 1, 0.22, 1) infinite;
+}
+
+.is-not-show {
   opacity: 0;
-  pointer-events: none;
   overflow: hidden;
+  pointer-events: none;
 }
 .btnUp {
   width: 50px;
@@ -99,4 +113,13 @@
   opacity: 0;
   overflow: hidden;
   pointer-events: none;
+}
+
+@keyframes load {
+  0% {
+    transform: trotate(0deg);
+  }
+  100% {
+    transform: translateY(-50%) rotate(360deg);
+  }
 }

@@ -1,5 +1,6 @@
 import FeatchAPIService from './js/fetchAPI';
 import buttonUPService from './js/btnUP';
+import btnLoadService from './js/btnLoad';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
@@ -7,17 +8,18 @@ import 'simplelightbox/dist/simple-lightbox.min.css';
 const refs = {
   formEl: document.querySelector('#search-form'),
   galleryEl: document.querySelector('.gallery'),
-  loadEl: document.querySelector('.load-more'),
-  spanBtnLoadEl: document.querySelector('.load-more__span'),
+  loadBtnEl: document.querySelector('.load-more'),
+  loadAnimEl: document.querySelector('.load-more__anim'),
 };
 
 const featchAPI = new FeatchAPIService();
 const buttonUP = new buttonUPService();
+const buttonLoad = new btnLoadService(refs.loadBtnEl, refs.loadAnimEl);
 
 buttonUP.addEventListener();
 
 refs.formEl.addEventListener('submit', onSearch);
-refs.loadEl.addEventListener('click', onLoad);
+refs.loadBtnEl.addEventListener('click', onLoad);
 
 const lightbox = new SimpleLightbox('.gallery a');
 
@@ -32,10 +34,12 @@ function onSearch(e) {
   featchAPI.endCollection = false;
   featchAPI.initialPage();
   refs.galleryEl.innerHTML = '';
-
+  buttonLoad.show();
+  buttonLoad.disabled();
   featchAPI
     .fetchArticles()
     .then(photos => {
+      buttonLoad.hide();
       if (photos.length === 0) {
         Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
@@ -45,8 +49,9 @@ function onSearch(e) {
       Notify.success(`Hooray! We found ${featchAPI.total} images.`);
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
+      checkCollection();
 
-      renderBtnLoad();
+      buttonLoad.enabled();
       lightbox.refresh();
     })
     .catch(error => {
@@ -54,10 +59,12 @@ function onSearch(e) {
     });
 }
 function onLoad() {
+  buttonLoad.show();
+  buttonLoad.disabled();
   featchAPI
     .fetchArticles()
     .then(photos => {
-      renderBtnLoad();
+      buttonLoad.hide();
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
       lightbox.refresh();
 
@@ -67,19 +74,21 @@ function onLoad() {
         );
         return;
       }
+
       scrollGallery();
+      checkCollection();
+      buttonLoad.enabled();
     })
     .catch(error => {
       Notify.failure(error.message);
     });
 }
 
-function renderBtnLoad() {
-  refs.loadEl.classList.add('is-not-show');
+function checkCollection() {
   if (featchAPI.endCollection) {
-    refs.loadEl.classList.add('is-not-show');
+    buttonLoad.hide();
   } else if (!featchAPI.endCollection) {
-    refs.loadEl.classList.remove('is-not-show');
+    buttonLoad.show();
   }
 }
 
