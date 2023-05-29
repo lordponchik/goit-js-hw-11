@@ -56,6 +56,7 @@ export default class FeatchAPIService {
   }
   initialPage() {
     this.page = 1;
+    this.perPage = 40;
   }
 
   get pageValue() {
