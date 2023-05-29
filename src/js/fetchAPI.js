@@ -47,8 +47,6 @@ export default class FeatchAPIService {
     } else {
       this.queryPage = Math.floor(data.totalHits / this.perPage);
       this.queryPerPage = data.totalHits - this.queryPage * this.perPage;
-      console.log(this.queryPerPage);
-      console.log(this.queryPage);
     }
   }
   pageIncrement() {
