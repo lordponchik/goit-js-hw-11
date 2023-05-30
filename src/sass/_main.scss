@@ -1,17 +1,28 @@
 .gallery {
-  display: flex;
-  flex-wrap: wrap;
-  margin-top: -10px;
-  margin-left: -10px;
   justify-content: space-around;
   padding-top: 50px;
   padding-bottom: 50px;
+  @media screen and (min-width: 768px) {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: -10px;
+    margin-left: -10px;
+  }
 }
 .photo-card {
-  width: calc(100% / 5);
   height: 400px;
-  margin-top: 10px;
-  margin-left: 10px;
+  @media screen and (min-width: 480px) and (max-width: 767px) {
+    margin: 0 auto;
+    width: 400px;
+  }
+  @media screen and (min-width: 768px) {
+    width: calc(100% / 3);
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+  @media screen and (min-width: 1200px) {
+    width: calc(100% / 5);
+  }
 }
 
 .photo-card__img {
