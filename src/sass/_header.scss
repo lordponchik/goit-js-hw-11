@@ -24,7 +24,7 @@
 }
 .search-form__input {
   border-style: none;
-  min-width: 450px;
+  min-width: 350px;
   padding: 10px 20px;
   outline: none;
 
@@ -32,6 +32,10 @@
     -webkit-box-shadow: 0px -5px 5px -5px rgba(0, 0, 0, 0.67);
     -moz-box-shadow: 0px -5px 5px -5px rgba(0, 0, 0, 0.67);
     box-shadow: 0px -5px 5px -5px rgba(0, 0, 0, 0.67);
+  }
+
+  @media screen and (min-width: 480px) {
+    min-width: 450px;
   }
 }
 .search-form__btn {
