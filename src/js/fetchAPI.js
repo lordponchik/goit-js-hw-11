@@ -1,3 +1,7 @@
+import axios from 'axios';
+axios.defaults.baseURL = 'https://pixabay.com/api';
+const API_KEY = '36810234-b5e1d7960ec1148affe35137c';
+
 export default class FeatchAPIService {
   constructor() {
     this.searchQuery = '';
@@ -13,16 +17,15 @@ export default class FeatchAPIService {
       this.perPage = this.queryPerPage;
     }
     const options = {
-      key: '36810234-b5e1d7960ec1148affe35137c',
       image_type: 'photo',
       orientation: 'horizontal',
       safesearch: true,
     };
 
-    const url = `https://pixabay.com/api/?key=${options.key}&q=${this.searchQuery}&image_type=${options.image_type}&orientation=${options.orientation}&safesearch=${options.safesearch}&page=${this.page}&per_page=${this.perPage}`;
+    const params = `/?key=${API_KEY}&q=${this.searchQuery}&image_type=${options.image_type}&orientation=${options.orientation}&safesearch=${options.safesearch}&page=${this.page}&per_page=${this.perPage}`;
 
-    const response = await fetch(url);
-    const data = await response.json();
+    const response = await axios.get(params);
+    const data = await response.data;
 
     if (
       (this.page > this.queryPage && this.queryPage > 0) ||
@@ -36,9 +39,9 @@ export default class FeatchAPIService {
 
     this.total = data.totalHits;
     this.pageIncrement();
-    const photo = await data.hits;
+    const photos = await data.hits;
 
-    return photo;
+    return photos;
   }
 
   checkPage(data) {
