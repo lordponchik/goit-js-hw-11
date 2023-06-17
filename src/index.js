@@ -5,7 +5,7 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { checkPosition } from './js/endlessScroll';
-import './js/loadingBtn';
+import { btnUpload } from './js/loadingBtn';
 
 const refs = {
   formEl: document.querySelector('#search-form'),
@@ -23,12 +23,22 @@ let isLoading = false;
 buttonUP.addEventListener();
 
 refs.formEl.addEventListener('submit', onSearch);
-// refs.loadBtnEl.addEventListener('click', onLoad);
 
 const lightbox = new SimpleLightbox('.gallery a');
 
 function onSearch(e) {
   e.preventDefault();
+
+  if (btnUpload === 'endlessBtn') {
+    refs.loadBtnEl.removeEventListener('click', onLoad);
+    window.addEventListener('scroll', infinityScroll);
+    buttonLoad.disabled();
+    buttonLoad.hide();
+  } else if (btnUpload === 'loadMoreBtn') {
+    window.removeEventListener('scroll', infinityScroll);
+    refs.loadBtnEl.addEventListener('click', onLoad);
+  }
+
   featchAPI.query = e.currentTarget.elements.searchQuery.value.trim();
 
   if (featchAPI.query.length === 0) {
@@ -40,8 +50,10 @@ function onSearch(e) {
   featchAPI.initialPage();
   refs.galleryEl.innerHTML = '';
 
-  // buttonLoad.show();
-  // buttonLoad.disabled();
+  if (btnUpload === 'loadMoreBtn') {
+    buttonLoad.show();
+    buttonLoad.disabled();
+  }
 
   featchAPI
     .fetchArticles()
@@ -55,12 +67,17 @@ function onSearch(e) {
 
       Notify.success(`Hooray! We found ${featchAPI.total} images.`);
 
-      // buttonLoad.hide();
+      if (btnUpload === 'loadMoreBtn') {
+        buttonLoad.hide();
+      }
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
 
-      // checkCollection();
-      // buttonLoad.enabled();
+      if (btnUpload === 'loadMoreBtn') {
+        checkCollection();
+        buttonLoad.enabled();
+      }
+
       lightbox.refresh();
       pressedBtnSearch = true;
       isLoading = false;
@@ -69,17 +86,12 @@ function onSearch(e) {
       Notify.failure(error.message);
     });
 }
-let scrl = true;
-if (scrl) {
-  window.addEventListener('scroll', () => {
-    checkPosition(onLoad);
-  });
-}
-// checkPosition(onLoad);
 
 function onLoad() {
-  // buttonLoad.show();
-  // buttonLoad.disabled();
+  if (btnUpload === 'loadMoreBtn') {
+    buttonLoad.show();
+    buttonLoad.disabled();
+  }
   if (!pressedBtnSearch || isLoading) return;
 
   isLoading = true;
@@ -87,7 +99,9 @@ function onLoad() {
   featchAPI
     .fetchArticles()
     .then(photos => {
-      // buttonLoad.hide();
+      if (btnUpload === 'loadMoreBtn') {
+        buttonLoad.hide();
+      }
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
 
@@ -99,8 +113,12 @@ function onLoad() {
       }
 
       scrollGallery();
-      // checkCollection();
-      // buttonLoad.enabled();
+
+      if (btnUpload === 'loadMoreBtn') {
+        checkCollection();
+        buttonLoad.enabled();
+      }
+
       lightbox.refresh();
       isLoading = false;
     })
@@ -154,7 +172,9 @@ function renderPhotos(photos) {
     )
     .join('');
 }
-
+function infinityScroll() {
+  checkPosition(onLoad);
+}
 function scrollGallery() {
   const { height: cardHeight } = document
     .querySelector('.gallery')
