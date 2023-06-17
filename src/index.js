@@ -4,6 +4,8 @@ import btnLoadService from './js/btnLoad';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import { checkPosition } from './js/endlessScroll';
+import { btnUpload } from './js/loadingBtn';
 
 const refs = {
   formEl: document.querySelector('#search-form'),
@@ -15,16 +17,28 @@ const refs = {
 const featchAPI = new FeatchAPIService();
 const buttonUP = new buttonUPService();
 const buttonLoad = new btnLoadService(refs.loadBtnEl, refs.loadAnimEl);
+let pressedBtnSearch = false;
+let isLoading = false;
 
 buttonUP.addEventListener();
 
 refs.formEl.addEventListener('submit', onSearch);
-refs.loadBtnEl.addEventListener('click', onLoad);
 
 const lightbox = new SimpleLightbox('.gallery a');
 
 function onSearch(e) {
   e.preventDefault();
+
+  if (btnUpload === 'endlessBtn') {
+    refs.loadBtnEl.removeEventListener('click', onLoad);
+    window.addEventListener('scroll', infinityScroll);
+    buttonLoad.disabled();
+    buttonLoad.hide();
+  } else if (btnUpload === 'loadMoreBtn') {
+    window.removeEventListener('scroll', infinityScroll);
+    refs.loadBtnEl.addEventListener('click', onLoad);
+  }
+
   featchAPI.query = e.currentTarget.elements.searchQuery.value.trim();
 
   if (featchAPI.query.length === 0) {
@@ -36,8 +50,10 @@ function onSearch(e) {
   featchAPI.initialPage();
   refs.galleryEl.innerHTML = '';
 
-  buttonLoad.show();
-  buttonLoad.disabled();
+  if (btnUpload === 'loadMoreBtn') {
+    buttonLoad.show();
+    buttonLoad.disabled();
+  }
 
   featchAPI
     .fetchArticles()
@@ -51,26 +67,41 @@ function onSearch(e) {
 
       Notify.success(`Hooray! We found ${featchAPI.total} images.`);
 
-      buttonLoad.hide();
+      if (btnUpload === 'loadMoreBtn') {
+        buttonLoad.hide();
+      }
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
 
-      checkCollection();
-      buttonLoad.enabled();
+      if (btnUpload === 'loadMoreBtn') {
+        checkCollection();
+        buttonLoad.enabled();
+      }
+
       lightbox.refresh();
+      pressedBtnSearch = true;
+      isLoading = false;
     })
     .catch(error => {
       Notify.failure(error.message);
     });
 }
+
 function onLoad() {
-  buttonLoad.show();
-  buttonLoad.disabled();
+  if (btnUpload === 'loadMoreBtn') {
+    buttonLoad.show();
+    buttonLoad.disabled();
+  }
+  if (!pressedBtnSearch || isLoading) return;
+
+  isLoading = true;
 
   featchAPI
     .fetchArticles()
     .then(photos => {
-      buttonLoad.hide();
+      if (btnUpload === 'loadMoreBtn') {
+        buttonLoad.hide();
+      }
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
 
@@ -82,9 +113,14 @@ function onLoad() {
       }
 
       scrollGallery();
-      checkCollection();
-      buttonLoad.enabled();
+
+      if (btnUpload === 'loadMoreBtn') {
+        checkCollection();
+        buttonLoad.enabled();
+      }
+
       lightbox.refresh();
+      isLoading = false;
     })
     .catch(error => {
       Notify.failure(error.message);
@@ -136,7 +172,9 @@ function renderPhotos(photos) {
     )
     .join('');
 }
-
+function infinityScroll() {
+  checkPosition(onLoad);
+}
 function scrollGallery() {
   const { height: cardHeight } = document
     .querySelector('.gallery')
