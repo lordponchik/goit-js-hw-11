@@ -4,6 +4,7 @@ import btnLoadService from './js/btnLoad';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import { checkPosition } from './js/endlessScroll';
 
 const refs = {
   formEl: document.querySelector('#search-form'),
@@ -15,11 +16,13 @@ const refs = {
 const featchAPI = new FeatchAPIService();
 const buttonUP = new buttonUPService();
 const buttonLoad = new btnLoadService(refs.loadBtnEl, refs.loadAnimEl);
+let pressedBtnSearch = false;
+let isLoading = false;
 
 buttonUP.addEventListener();
 
 refs.formEl.addEventListener('submit', onSearch);
-refs.loadBtnEl.addEventListener('click', onLoad);
+// refs.loadBtnEl.addEventListener('click', onLoad);
 
 const lightbox = new SimpleLightbox('.gallery a');
 
@@ -36,8 +39,8 @@ function onSearch(e) {
   featchAPI.initialPage();
   refs.galleryEl.innerHTML = '';
 
-  buttonLoad.show();
-  buttonLoad.disabled();
+  // buttonLoad.show();
+  // buttonLoad.disabled();
 
   featchAPI
     .fetchArticles()
@@ -51,26 +54,39 @@ function onSearch(e) {
 
       Notify.success(`Hooray! We found ${featchAPI.total} images.`);
 
-      buttonLoad.hide();
+      // buttonLoad.hide();
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
 
-      checkCollection();
-      buttonLoad.enabled();
+      // checkCollection();
+      // buttonLoad.enabled();
       lightbox.refresh();
+      pressedBtnSearch = true;
+      isLoading = false;
     })
     .catch(error => {
       Notify.failure(error.message);
     });
 }
+let scrl = true;
+if (scrl) {
+  window.addEventListener('scroll', () => {
+    checkPosition(onLoad);
+  });
+}
+// checkPosition(onLoad);
+
 function onLoad() {
-  buttonLoad.show();
-  buttonLoad.disabled();
+  // buttonLoad.show();
+  // buttonLoad.disabled();
+  if (!pressedBtnSearch || isLoading) return;
+
+  isLoading = true;
 
   featchAPI
     .fetchArticles()
     .then(photos => {
-      buttonLoad.hide();
+      // buttonLoad.hide();
 
       refs.galleryEl.insertAdjacentHTML('beforeend', renderPhotos(photos));
 
@@ -82,9 +98,10 @@ function onLoad() {
       }
 
       scrollGallery();
-      checkCollection();
-      buttonLoad.enabled();
+      // checkCollection();
+      // buttonLoad.enabled();
       lightbox.refresh();
+      isLoading = false;
     })
     .catch(error => {
       Notify.failure(error.message);
