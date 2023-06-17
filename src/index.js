@@ -5,6 +5,7 @@ import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { checkPosition } from './js/endlessScroll';
+import './js/loadingBtn';
 
 const refs = {
   formEl: document.querySelector('#search-form'),
