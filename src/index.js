@@ -6,6 +6,7 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 import { checkPosition } from './js/endlessScroll';
 import { btnUpload } from './js/loadingBtn';
+import throttle from 'lodash.throttle';
 
 const refs = {
   formEl: document.querySelector('#search-form'),
@@ -31,7 +32,7 @@ function onSearch(e) {
 
   if (btnUpload === 'endlessBtn') {
     refs.loadBtnEl.removeEventListener('click', onLoad);
-    window.addEventListener('scroll', infinityScroll);
+    window.addEventListener('scroll', throttle(infinityScroll, 250));
     buttonLoad.disabled();
     buttonLoad.hide();
   } else if (btnUpload === 'loadMoreBtn') {
